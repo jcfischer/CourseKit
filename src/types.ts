@@ -98,6 +98,58 @@ export interface DiscoveryOptions {
 }
 
 // =============================================================================
+// Frontmatter Validation (F-3)
+// =============================================================================
+
+/** A single validation issue for a file */
+export interface ValidationIssue {
+  /** Field that failed validation (or "frontmatter" for missing) */
+  field: string;
+  /** Human-readable error message */
+  message: string;
+  /** Suggestion for how to fix */
+  suggestion?: string;
+}
+
+/** Validation result for a single file */
+export interface FileValidation {
+  /** Path to the file */
+  filePath: string;
+  /** Relative path from source root */
+  relativePath: string;
+  /** Whether the file passed validation */
+  valid: boolean;
+  /** List of validation errors (empty if valid) */
+  errors: ValidationIssue[];
+}
+
+/** A warning about potential issues (not blocking) */
+export interface ValidationWarning {
+  /** Warning type code */
+  code: "DUPLICATE_ORDER";
+  /** Human-readable message */
+  message: string;
+  /** Files involved */
+  files: string[];
+}
+
+/** Complete validation result for all files */
+export interface ValidationResult {
+  /** Whether all files passed validation */
+  valid: boolean;
+  /** Total number of files checked */
+  totalFiles: number;
+  /** Number of valid files */
+  validFiles: number;
+  /** Number of invalid files */
+  invalidFiles: number;
+  /** Validation results for invalid files only */
+  files: FileValidation[];
+  /** Non-blocking warnings (e.g., duplicate orders) */
+  warnings: ValidationWarning[];
+}
+
+// =============================================================================
 // Course Status & Phase
 // =============================================================================
 
