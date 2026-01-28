@@ -22,6 +22,7 @@ import {
   scanPlatformGuides,
   scanPlatformLessons,
 } from "./platform-utils";
+import { parseFilename } from "./discovery-utils";
 
 /**
  * Read the current state of content from the platform.
@@ -124,7 +125,10 @@ async function processLessonFile(
 
   const courseId = parts[0];
   const filename = parts[parts.length - 1];
-  const slug = filename.replace(/\.md$/, "");
+
+  // Parse filename to extract slug consistently with source discovery
+  const parsedFilename = parseFilename(filename);
+  const slug = parsedFilename ? parsedFilename.slug : filename.replace(/\.md$/, "");
 
   // Parse file
   const parsed = await parsePlatformFile(filePath);

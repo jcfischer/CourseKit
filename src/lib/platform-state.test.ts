@@ -56,7 +56,7 @@ describe("Scenario 1: Read platform lessons for single course", () => {
     const manifest = await readPlatformState(config);
 
     const slugs = manifest.lessons.map((l) => l.slug).sort();
-    expect(slugs).toEqual(["01-intro", "02-setup"]);
+    expect(slugs).toEqual(["intro", "setup"]);
   });
 });
 
@@ -167,7 +167,7 @@ describe("Scenario 5: Preserve platform-owned fields", () => {
     const config = createConfig("single-course");
     const manifest = await readPlatformState(config);
 
-    const introLesson = manifest.lessons.find((l) => l.slug === "01-intro");
+    const introLesson = manifest.lessons.find((l) => l.slug === "intro");
     expect(introLesson?.platformFields.price).toBe(4999);
   });
 
@@ -175,7 +175,7 @@ describe("Scenario 5: Preserve platform-owned fields", () => {
     const config = createConfig("single-course");
     const manifest = await readPlatformState(config);
 
-    const introLesson = manifest.lessons.find((l) => l.slug === "01-intro");
+    const introLesson = manifest.lessons.find((l) => l.slug === "intro");
     expect(introLesson?.platformFields.lemonSqueezyProductId).toBe("prod_123abc");
   });
 
@@ -183,7 +183,7 @@ describe("Scenario 5: Preserve platform-owned fields", () => {
     const config = createConfig("single-course");
     const manifest = await readPlatformState(config);
 
-    const setupLesson = manifest.lessons.find((l) => l.slug === "02-setup");
+    const setupLesson = manifest.lessons.find((l) => l.slug === "setup");
     expect(setupLesson?.platformFields.enrollmentCount).toBe(150);
   });
 
@@ -191,7 +191,7 @@ describe("Scenario 5: Preserve platform-owned fields", () => {
     const config = createConfig("single-course");
     const manifest = await readPlatformState(config);
 
-    const introLesson = manifest.lessons.find((l) => l.slug === "01-intro");
+    const introLesson = manifest.lessons.find((l) => l.slug === "intro");
     expect(introLesson?.platformFields.publishedAt).toBe("2024-01-15T10:00:00Z");
   });
 });

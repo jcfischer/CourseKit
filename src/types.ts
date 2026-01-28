@@ -95,6 +95,8 @@ export interface DiscoveryOptions {
   courseId?: string;
   /** Include raw frontmatter in results (default: false) */
   includeRaw?: boolean;
+  /** Explicit source root path (default: derived from config or cwd) */
+  sourceRoot?: string;
 }
 
 // =============================================================================
@@ -708,4 +710,246 @@ export function detectBloomLevel(objective: string): BloomLevel | null {
     }
   }
   return null;
+}
+
+// =============================================================================
+// Diff Calculation (F-7)
+// =============================================================================
+
+/**
+ * Status of a file when comparing source to platform.
+ */
+export type DiffStatus = "added" | "modified" | "removed" | "unchanged";
+
+/**
+ * A single field that changed between source and platform.
+ */
+export interface FieldChange {
+  /** Field name that changed */
+  field: string;
+  /** Value in source (undefined if removed) */
+  sourceValue?: unknown;
+  /** Value on platform (undefined if added) */
+  platformValue?: unknown;
+  /** Type of change */
+  changeType: "added" | "modified" | "removed";
+}
+
+/**
+ * A single item in the diff result.
+ */
+export interface DiffItem {
+  /** Canonical key for the item (courseId/slug) */
+  key: string;
+  /** Course ID */
+  courseId: string;
+  /** Content slug */
+  slug: string;
+  /** Diff status */
+  status: DiffStatus;
+  /** Source file path (undefined if removed) */
+  sourcePath?: string;
+  /** Platform file path (undefined if added) */
+  platformPath?: string;
+  /** Field-level changes (populated for modified items) */
+  changes: FieldChange[];
+  /** Whether body content changed (based on hash comparison) */
+  bodyChanged: boolean;
+}
+
+/**
+ * Summary statistics for a diff operation.
+ */
+export interface DiffSummary {
+  /** Total items compared */
+  total: number;
+  /** Items only in source (to be added to platform) */
+  added: number;
+  /** Items that differ between source and platform */
+  modified: number;
+  /** Items only on platform (to be removed) */
+  removed: number;
+  /** Items identical in source and platform */
+  unchanged: number;
+}
+
+/**
+ * Complete result of a diff operation.
+ */
+export interface DiffResult {
+  /** Content type being compared */
+  contentType: "lessons" | "guides";
+  /** All diff items, sorted by status then key */
+  items: DiffItem[];
+  /** Summary statistics */
+  summary: DiffSummary;
+  /** Timestamp of diff operation */
+  calculatedAt: Date;
+}
+
+/**
+ * Options for diff calculation.
+ */
+export interface DiffOptions {
+  /** Filter to a specific course ID */
+  courseId?: string;
+  /** Include unchanged items in results (default: false) */
+  includeUnchanged?: boolean;
+}
+
+// =============================================================================
+// Conflict Detection (F-8)
+// =============================================================================
+
+/**
+ * Record of a single synced file, stored in .coursekit-sync.json.
+ */
+export interface SyncRecord {
+  /** Relative path of the synced file in the platform */
+  filePath: string;
+  /** SHA-256 hash of file content at time of last successful sync */
+  contentHash: string;
+  /** ISO 8601 timestamp of last successful sync */
+  syncedAt: string;
+  /** Which source repository the file came from */
+  sourceRepo: string;
+}
+
+/**
+ * Complete sync state stored in .coursekit-sync.json.
+ */
+export interface SyncState {
+  /** Schema version for migration support */
+  version: number;
+  /** Map of canonical key (courseId/slug) to sync record */
+  records: Record<string, SyncRecord>;
+  /** ISO 8601 timestamp of last sync operation */
+  lastSync: string | null;
+}
+
+/**
+ * Type of conflict detected between platform and sync state.
+ */
+export type ConflictType = "modified" | "deleted" | "new_on_platform";
+
+/**
+ * A single conflict item detected during push.
+ */
+export interface ConflictItem {
+  /** Canonical key (courseId/slug) */
+  key: string;
+  /** Path to file on platform (if exists) */
+  platformPath?: string;
+  /** Expected hash from sync state */
+  expectedHash?: string;
+  /** Current hash of platform file */
+  currentHash?: string;
+  /** When the file was last synced */
+  lastSyncedAt?: string;
+  /** Type of conflict */
+  conflictType: ConflictType;
+  /** Human-readable summary of the conflict */
+  changeSummary: string;
+}
+
+/**
+ * Result of conflict detection operation.
+ */
+export interface ConflictDetectionResult {
+  /** Whether any conflicts were detected */
+  hasConflicts: boolean;
+  /** List of all conflicts found */
+  conflicts: ConflictItem[];
+  /** Total number of files checked */
+  totalChecked: number;
+}
+
+/**
+ * Options for conflict detection.
+ */
+export interface ConflictDetectionOptions {
+  /** Filter to a specific course ID */
+  courseId?: string;
+}
+
+/**
+ * Options for the push command.
+ */
+export interface PushOptions {
+  /** Force push even with conflicts */
+  force?: boolean;
+  /** Show what would change without writing */
+  dryRun?: boolean;
+  /** Filter to specific course ID */
+  course?: string;
+}
+
+// =============================================================================
+// Lesson Sync Execution (F-9)
+// =============================================================================
+
+/**
+ * Options for sync execution.
+ */
+export interface SyncOptions {
+  /** Preview changes without writing files */
+  dryRun?: boolean;
+  /** Overwrite conflicting files */
+  force?: boolean;
+  /** Filter to specific course ID */
+  courseId?: string;
+  /** Filter to specific lesson slug */
+  slug?: string;
+}
+
+/**
+ * An error that occurred during sync.
+ */
+export interface SyncError {
+  /** Canonical key (courseId/slug) of the file */
+  key: string;
+  /** Error that occurred */
+  error: Error;
+  /** Human-readable error message */
+  message: string;
+}
+
+/**
+ * Summary of sync operation counts.
+ */
+export interface SyncSummary {
+  /** Total files processed */
+  total: number;
+  /** Files created on platform */
+  created: number;
+  /** Files updated on platform */
+  updated: number;
+  /** Files unchanged (skipped) */
+  unchanged: number;
+  /** Files skipped due to conflicts */
+  skipped: number;
+  /** Files with errors */
+  errors: number;
+}
+
+/**
+ * Result of a sync operation.
+ */
+export interface SyncResult {
+  /** Whether sync completed successfully (no conflicts/errors blocking) */
+  success: boolean;
+  /** Keys of files that were created */
+  created: string[];
+  /** Keys of files that were updated */
+  updated: string[];
+  /** Keys of files that were unchanged */
+  unchanged: string[];
+  /** Keys of files skipped due to conflicts */
+  skipped: string[];
+  /** Errors encountered during sync */
+  errors: SyncError[];
+  /** Summary counts */
+  summary: SyncSummary;
+  /** Whether this was a dry run */
+  dryRun: boolean;
 }

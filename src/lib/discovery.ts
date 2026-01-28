@@ -114,12 +114,27 @@ export function scanLessonFiles(
  * @returns Complete lesson manifest with warnings
  */
 export function discoverLessons(
-  _config: CourseKitConfig, // Will be used when we add config-based source root
+  config: CourseKitConfig,
   options: DiscoveryOptions = {}
 ): LessonManifest {
-  // TODO: Derive source root from config in future
-  // For now, use current working directory as source root
-  const sourceRoot = process.cwd();
+  // Use sourceRoot from options, or derive from first course's sourceDir, or fall back to cwd
+  let sourceRoot = options.sourceRoot;
+  if (!sourceRoot) {
+    const courses = Object.values(config.courses);
+    if (courses.length > 0 && courses[0].sourceDir) {
+      // Extract parent of courses/ directory from sourceDir
+      // sourceDir is like "/path/to/source/courses/astro-course/lessons"
+      // We want "/path/to/source"
+      const courseSourceDir = courses[0].sourceDir;
+      const coursesMatch = courseSourceDir.match(/^(.+)\/courses\//);
+      if (coursesMatch) {
+        sourceRoot = coursesMatch[1];
+      }
+    }
+  }
+  if (!sourceRoot) {
+    sourceRoot = process.cwd();
+  }
 
   const lessons: DiscoveredLesson[] = [];
   const warnings: DiscoveryWarning[] = [];

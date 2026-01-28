@@ -18,6 +18,9 @@ import { lessonCommand } from "./commands/lesson";
 import { completeCommand } from "./commands/complete";
 import { validateCommand } from "./commands/validate";
 import { syncCommand } from "./commands/sync";
+import { pushCommand } from "./commands/push";
+import { syncStatusCommand } from "./commands/sync-status";
+import { syncValidateCommand } from "./commands/sync-validate";
 
 // =============================================================================
 // Version from package.json
@@ -160,6 +163,28 @@ program
   .option("--dry-run", "Show what would be synced without writing files")
   .option("--platform-root <path>", "Path to course-platform root")
   .action(syncCommand);
+
+program
+  .command("push")
+  .description("Push course materials to platform (lessons, guides, assets)")
+  .option("-d, --dry-run", "Preview changes without writing files")
+  .option("-f, --force", "Overwrite conflicting files")
+  .option("-c, --course <id>", "Filter to specific course ID")
+  .action(pushCommand);
+
+program
+  .command("sync-status")
+  .description("Show sync state between source and platform")
+  .option("-c, --course <id>", "Filter to specific course ID")
+  .option("--json", "Output as JSON")
+  .action(syncStatusCommand);
+
+program
+  .command("sync-validate")
+  .description("Validate source structure before push")
+  .option("-c, --course <id>", "Filter to specific course ID")
+  .option("--json", "Output as JSON")
+  .action(syncValidateCommand);
 
 // =============================================================================
 // Parse and Execute
