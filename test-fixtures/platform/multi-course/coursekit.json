@@ -1,0 +1,15 @@
+{
+  "platform": {
+    "path": "."
+  },
+  "courses": {
+    "supertag-course": {
+      "slug": "supertag-course",
+      "sourceDir": "courses/supertag"
+    },
+    "astro-course": {
+      "slug": "astro-course",
+      "sourceDir": "courses/astro"
+    }
+  }
+}

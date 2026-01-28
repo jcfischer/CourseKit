@@ -1,0 +1,11 @@
+{
+  "platform": {
+    "path": "."
+  },
+  "courses": {
+    "broken-course": {
+      "slug": "broken-course",
+      "sourceDir": "courses/broken"
+    }
+  }
+}

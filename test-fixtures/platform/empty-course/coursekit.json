@@ -1,0 +1,11 @@
+{
+  "platform": {
+    "path": "."
+  },
+  "courses": {
+    "new-course": {
+      "slug": "new-course",
+      "sourceDir": "courses/new"
+    }
+  }
+}

@@ -285,6 +285,118 @@ export interface AssetDiscoveryOptions {
 }
 
 // =============================================================================
+// Platform State Reading (F-6)
+// =============================================================================
+
+/**
+ * Platform-owned fields that should be preserved during sync.
+ * These are managed by the platform (commerce, analytics, etc.).
+ */
+export interface PlatformOwnedFields {
+  /** Price in cents */
+  price?: number;
+  /** LemonSqueezy product ID */
+  lemonSqueezyProductId?: string;
+  /** Number of enrollments */
+  enrollmentCount?: number;
+  /** When the content was published on platform */
+  publishedAt?: string;
+  /** Allow additional platform-specific fields */
+  [key: string]: unknown;
+}
+
+/**
+ * A lesson file read from the platform.
+ */
+export interface PlatformLesson {
+  /** Absolute path to the platform file */
+  path: string;
+  /** Path relative to platform content root */
+  relativePath: string;
+  /** Course ID extracted from path */
+  courseId: string;
+  /** Filename without extension */
+  slug: string;
+  /** Parsed frontmatter */
+  frontmatter: Record<string, unknown>;
+  /** Platform-owned fields extracted from frontmatter */
+  platformFields: PlatformOwnedFields;
+  /** SHA-256 hash of body content (excluding frontmatter) */
+  contentHash: string;
+}
+
+/**
+ * A guide file read from the platform.
+ */
+export interface PlatformGuide {
+  /** Absolute path to the platform file */
+  path: string;
+  /** Path relative to platform content root */
+  relativePath: string;
+  /** Course ID extracted from path */
+  courseId: string;
+  /** Filename without extension */
+  slug: string;
+  /** Parsed frontmatter */
+  frontmatter: Record<string, unknown>;
+  /** Platform-owned fields extracted from frontmatter */
+  platformFields: PlatformOwnedFields;
+  /** SHA-256 hash of body content (excluding frontmatter) */
+  contentHash: string;
+}
+
+/** Warning codes for platform state reading issues */
+export type PlatformStateWarningCode =
+  | "MISSING_CONTENT_DIR"
+  | "MALFORMED_FRONTMATTER"
+  | "READ_ERROR"
+  | "EMPTY_CONTENT";
+
+/** A warning from platform state reading (non-fatal) */
+export interface PlatformStateWarning {
+  /** Warning type code */
+  code: PlatformStateWarningCode;
+  /** Human-readable message */
+  message: string;
+  /** Absolute path if file-specific */
+  filePath?: string;
+  /** Relative path for display */
+  relativePath?: string;
+}
+
+/** Result of platform state reading operation */
+export interface PlatformStateManifest {
+  /** All lessons grouped by courseId */
+  lessons: PlatformLesson[];
+  /** All guides grouped by courseId */
+  guides: PlatformGuide[];
+  /** Non-fatal issues encountered */
+  warnings: PlatformStateWarning[];
+  /** Platform root that was scanned */
+  platformRoot: string;
+  /** Timestamp of read operation */
+  readAt: Date;
+}
+
+/** Options for platform state reading */
+export interface PlatformStateOptions {
+  /** Filter to a specific course ID */
+  courseId?: string;
+  /** Include only lessons (skip guides) */
+  lessonsOnly?: boolean;
+  /** Include only guides (skip lessons) */
+  guidesOnly?: boolean;
+}
+
+/** Default platform-owned fields to protect during sync */
+export const DEFAULT_PROTECTED_FIELDS = [
+  "price",
+  "lemonSqueezyProductId",
+  "enrollmentCount",
+  "publishedAt",
+];
+
+// =============================================================================
 // Course Status & Phase
 // =============================================================================
 
