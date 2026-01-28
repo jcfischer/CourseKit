@@ -224,6 +224,67 @@ export interface GuideDiscoveryOptions {
 }
 
 // =============================================================================
+// Asset Discovery (F-5)
+// =============================================================================
+
+/**
+ * A discovered asset file with metadata.
+ * Assets are non-markdown files in materials/assets directories.
+ */
+export interface DiscoveredAsset {
+  /** Absolute path to the asset file */
+  path: string;
+  /** Path relative to materials root (e.g., "module-01/assets/diagram.png") */
+  relativePath: string;
+  /** File extension without dot (e.g., "png", "pdf") */
+  extension: string;
+  /** MIME type (e.g., "image/png", "application/pdf") */
+  mimeType: string;
+  /** File size in bytes */
+  size: number;
+}
+
+/** Warning codes for asset discovery issues */
+export type AssetDiscoveryWarningCode =
+  | "MISSING_MATERIALS_DIR"
+  | "STAT_ERROR"
+  | "PERMISSION_DENIED";
+
+/** A warning from asset discovery (non-fatal) */
+export interface AssetDiscoveryWarning {
+  /** Warning type code */
+  code: AssetDiscoveryWarningCode;
+  /** Human-readable message */
+  message: string;
+  /** Absolute path if file-specific */
+  filePath?: string;
+  /** Relative path for display */
+  relativePath?: string;
+}
+
+/** Result of asset discovery operation */
+export interface AssetManifest {
+  /** All discovered asset files, sorted alphabetically by relativePath */
+  assets: DiscoveredAsset[];
+  /** Non-fatal issues encountered during discovery */
+  warnings: AssetDiscoveryWarning[];
+  /** Root directory that was scanned */
+  materialsRoot: string;
+  /** Total size of all assets in bytes */
+  totalSize: number;
+  /** Timestamp of discovery operation */
+  discoveredAt: Date;
+}
+
+/** Options for asset discovery */
+export interface AssetDiscoveryOptions {
+  /** Filter to assets in a specific subdirectory (e.g., "module-01") */
+  subdirectory?: string;
+  /** Filter to specific MIME types (e.g., ["image/png", "image/jpeg"]) */
+  mimeTypes?: string[];
+}
+
+// =============================================================================
 // Course Status & Phase
 // =============================================================================
 
