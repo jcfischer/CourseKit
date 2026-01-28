@@ -26,6 +26,78 @@ export interface CourseKitConfig {
 }
 
 // =============================================================================
+// Lesson Discovery (F-2)
+// =============================================================================
+
+/** Parsed lesson frontmatter - all fields optional */
+export interface LessonFrontmatter {
+  courseSlug?: string;
+  moduleId?: string;
+  title?: string;
+  description?: string;
+  order?: number;
+  durationMinutes?: number;
+  resources?: Array<{ label: string; path: string }>;
+  [key: string]: unknown; // Allow additional fields
+}
+
+/** A discovered lesson file with metadata */
+export interface DiscoveredLesson {
+  /** Absolute path to the lesson file */
+  path: string;
+  /** Relative path from source root */
+  relativePath: string;
+  /** Course ID (directory name) */
+  courseId: string;
+  /** Order extracted from filename (e.g., 01 from 01-intro.md) */
+  order: number;
+  /** Slug extracted from filename (e.g., intro from 01-intro.md) */
+  slug: string;
+  /** Parsed frontmatter */
+  frontmatter: LessonFrontmatter;
+  /** Raw frontmatter string (for debugging) */
+  rawFrontmatter?: string;
+}
+
+/** Warning codes for non-fatal discovery issues */
+export type DiscoveryWarningCode =
+  | "INVALID_FILENAME"
+  | "MALFORMED_FRONTMATTER"
+  | "MISSING_LESSONS_DIR"
+  | "EMPTY_LESSONS_DIR"
+  | "READ_ERROR";
+
+/** A non-fatal issue encountered during discovery */
+export interface DiscoveryWarning {
+  /** File path related to the warning */
+  path: string;
+  /** Warning type code */
+  code: DiscoveryWarningCode;
+  /** Human-readable message */
+  message: string;
+}
+
+/** Complete result of lesson discovery */
+export interface LessonManifest {
+  /** All discovered lessons, sorted by course then order */
+  lessons: DiscoveredLesson[];
+  /** Non-fatal warnings encountered */
+  warnings: DiscoveryWarning[];
+  /** Source root path used */
+  sourceRoot: string;
+  /** Timestamp of discovery */
+  discoveredAt: Date;
+}
+
+/** Options for the discovery function */
+export interface DiscoveryOptions {
+  /** Discover only this course (default: all courses) */
+  courseId?: string;
+  /** Include raw frontmatter in results (default: false) */
+  includeRaw?: boolean;
+}
+
+// =============================================================================
 // Course Status & Phase
 // =============================================================================
 
