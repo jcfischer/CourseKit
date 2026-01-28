@@ -4,6 +4,28 @@
  */
 
 // =============================================================================
+// Sync Configuration (F-1)
+// =============================================================================
+
+/** Mapping between a course slug and its source directory */
+export interface CourseMapping {
+  slug: string;
+  sourceDir: string;
+}
+
+/** Platform repository configuration */
+export interface PlatformConfig {
+  path: string;
+  remote?: string;
+}
+
+/** Top-level coursekit.json configuration */
+export interface CourseKitConfig {
+  platform: PlatformConfig;
+  courses: Record<string, CourseMapping>;
+}
+
+// =============================================================================
 // Course Status & Phase
 // =============================================================================
 
