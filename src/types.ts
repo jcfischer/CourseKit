@@ -150,6 +150,80 @@ export interface ValidationResult {
 }
 
 // =============================================================================
+// Guide Discovery (F-4)
+// =============================================================================
+
+/**
+ * Parsed frontmatter from a guide file.
+ * More permissive than lesson frontmatter - guides are supplementary.
+ */
+export interface GuideFrontmatter {
+  /** Required: guide title */
+  title: string;
+  /** Optional: brief description */
+  description?: string;
+  /** Allow extra fields (passthrough) */
+  [key: string]: unknown;
+}
+
+/**
+ * A discovered guide file with parsed metadata.
+ * Mirrors DiscoveredLesson structure for consistency.
+ */
+export interface DiscoveredGuide {
+  /** Absolute path to the guide file */
+  path: string;
+  /** Path relative to materials root (e.g., "module-01/guide-setup.md") */
+  relativePath: string;
+  /** Slug extracted from filename (e.g., "setup" from "guide-setup.md") */
+  slug: string;
+  /** Parsed YAML frontmatter */
+  frontmatter: GuideFrontmatter;
+  /** Raw frontmatter string (optional, for debugging) */
+  rawFrontmatter?: string;
+}
+
+/** Warning codes for guide discovery issues */
+export type GuideDiscoveryWarningCode =
+  | "MISSING_MATERIALS_DIR"
+  | "EMPTY_MATERIALS_DIR"
+  | "MALFORMED_FRONTMATTER"
+  | "MISSING_TITLE"
+  | "READ_ERROR";
+
+/** A warning from guide discovery (non-fatal) */
+export interface GuideDiscoveryWarning {
+  /** Warning type code */
+  code: GuideDiscoveryWarningCode;
+  /** Human-readable message */
+  message: string;
+  /** Absolute path if file-specific */
+  filePath?: string;
+  /** Relative path for display */
+  relativePath?: string;
+}
+
+/** Result of guide discovery operation */
+export interface GuideManifest {
+  /** All discovered guide files, sorted alphabetically by relativePath */
+  guides: DiscoveredGuide[];
+  /** Non-fatal issues encountered during discovery */
+  warnings: GuideDiscoveryWarning[];
+  /** Root directory that was scanned */
+  materialsRoot: string;
+  /** Timestamp of discovery operation */
+  discoveredAt: Date;
+}
+
+/** Options for guide discovery */
+export interface GuideDiscoveryOptions {
+  /** Include raw frontmatter string in results (default: false) */
+  includeRawFrontmatter?: boolean;
+  /** Filter to guides in a specific subdirectory (e.g., "module-01") */
+  subdirectory?: string;
+}
+
+// =============================================================================
 // Course Status & Phase
 // =============================================================================
 
