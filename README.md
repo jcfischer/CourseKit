@@ -121,7 +121,122 @@ CourseKit is designed as a PAI (Personal AI Infrastructure) skill because:
 
 The human provides domain expertise and creative vision. CourseKit provides pedagogical structure and systematic execution.
 
-## Usage
+## CLI Commands
+
+### Content Sync System
+
+CourseKit provides a one-way sync system to push content from your source directory to a platform deployment.
+
+#### Configuration
+
+Create a `coursekit.json` in your project root:
+
+```json
+{
+  "sourceRoot": "./courses",
+  "platformRoot": "../my-platform",
+  "courses": [
+    {
+      "id": "astro-course",
+      "slug": "astro-course",
+      "title": "Building with Astro"
+    }
+  ],
+  "guides": [
+    {
+      "slug": "getting-started",
+      "sourcePath": "./guides/getting-started.md"
+    }
+  ],
+  "assets": {
+    "sourceDir": "./assets",
+    "patterns": ["**/*.{png,jpg,gif,svg,pdf}"]
+  }
+}
+```
+
+#### Push Content
+
+Sync all content from source to platform:
+
+```bash
+# Preview changes (dry run)
+coursekit push --dry-run
+
+# Execute sync
+coursekit push
+
+# Force sync (overwrite conflicts)
+coursekit push --force
+
+# Sync specific course
+coursekit push --course astro-course
+```
+
+#### Check Sync Status
+
+View current sync state and pending changes:
+
+```bash
+# Human-readable output
+coursekit sync-status
+
+# Filter to specific course
+coursekit sync-status --course astro-course
+
+# JSON output for scripting
+coursekit sync-status --json
+```
+
+#### Validate Content
+
+Check frontmatter and content structure:
+
+```bash
+# Validate all lessons
+coursekit sync-validate
+
+# Validate specific course
+coursekit sync-validate --course astro-course
+
+# JSON output
+coursekit sync-validate --json
+```
+
+### Content Types
+
+| Type | Source Location | Platform Location |
+|------|-----------------|-------------------|
+| Lessons | `courses/{course}/lessons/*.md` | `src/content/lessons/{course}/*.md` |
+| Guides | `guides/*.md` | `src/content/guides/*.md` |
+| Assets | `assets/**/*` | `public/assets/{course}/**/*` |
+
+### Frontmatter Requirements
+
+Lessons require valid frontmatter:
+
+```yaml
+---
+title: "Introduction to Astro"
+description: "Learn the basics of Astro framework"
+order: 1
+duration: 15
+objectives:
+  - "Explain what Astro is"
+  - "Set up a new Astro project"
+---
+```
+
+### Conflict Detection
+
+The sync system tracks three states:
+- **Source**: Your working content
+- **Platform**: Deployed content
+- **Sync State**: Last known synchronized state
+
+When both source and platform change since last sync, a conflict is detected. Use `--force` to overwrite platform changes with source.
+
+## Usage (PAI Skill)
 
 ```bash
 # Invoke via PAI
