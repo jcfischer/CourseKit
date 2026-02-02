@@ -128,12 +128,18 @@ export interface FileValidation {
 /** A warning about potential issues (not blocking) */
 export interface ValidationWarning {
   /** Warning type code */
-  code: "DUPLICATE_ORDER";
+  code: ValidationWarningCode;
   /** Human-readable message */
   message: string;
   /** Files involved */
   files: string[];
 }
+
+/** Warning codes for validation issues */
+export type ValidationWarningCode =
+  | "DUPLICATE_ORDER"
+  | "VIDEO_SCRIPT_FORMAT"
+  | "MISSING_HEADING";
 
 /** Complete validation result for all files */
 export interface ValidationResult {

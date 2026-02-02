@@ -176,6 +176,7 @@ program
   .command("sync-status")
   .description("Show sync state between source and platform")
   .option("-c, --course <id>", "Filter to specific course ID")
+  .option("-d, --detail", "Show field-level changes for modified files")
   .option("--json", "Output as JSON")
   .action(syncStatusCommand);
 

@@ -7,7 +7,7 @@
 import chalk from "chalk";
 import { loadConfig } from "../config";
 import { discoverLessons } from "../lib/discovery";
-import { validateAllLessons } from "../lib/validation";
+import { validateAllLessons, validateAllContentFormats } from "../lib/validation";
 
 export interface SyncValidateOptions {
   course?: string;
@@ -35,6 +35,10 @@ export async function syncValidateCommand(options: SyncValidateOptions = {}): Pr
     console.log(chalk.dim("Validating frontmatter..."));
     const validation = validateAllLessons(manifest, config);
 
+    // Validate content format
+    console.log(chalk.dim("Checking content format..."));
+    const formatWarnings = await validateAllContentFormats(manifest);
+
     // JSON output
     if (options.json) {
       console.log(JSON.stringify({
@@ -43,6 +47,7 @@ export async function syncValidateCommand(options: SyncValidateOptions = {}): Pr
           warnings: manifest.warnings,
         },
         validation,
+        formatWarnings,
       }, null, 2));
       return;
     }
@@ -93,10 +98,31 @@ export async function syncValidateCommand(options: SyncValidateOptions = {}): Pr
       }
     }
 
+    // Content format warnings
+    if (formatWarnings.length > 0) {
+      console.log("");
+      console.log(chalk.bold("Content Format Issues:"));
+      for (const warning of formatWarnings) {
+        console.log(`  ${chalk.red("✗")} ${warning.message}`);
+      }
+      console.log("");
+      console.log(
+        chalk.dim(
+          "  These files contain VIDEO SCRIPT format markers."
+        )
+      );
+      console.log(
+        chalk.dim(
+          "  Convert to TEXT format before pushing."
+        )
+      );
+    }
+
     console.log("");
 
     // Exit code
-    if (!validation.valid) {
+    const hasErrors = !validation.valid || formatWarnings.length > 0;
+    if (hasErrors) {
       console.log(chalk.red("Validation failed. Fix errors before pushing."));
       process.exitCode = 1;
     } else {

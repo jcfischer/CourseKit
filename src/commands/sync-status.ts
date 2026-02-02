@@ -13,6 +13,16 @@ import { displayConflictStatus } from "../lib/conflict-display";
 export interface SyncStatusOptions {
   course?: string;
   json?: boolean;
+  detail?: boolean;
+}
+
+/** Format a value for display, truncating long strings */
+function formatValue(value: unknown): string {
+  if (value === undefined) return chalk.dim("(none)");
+  if (typeof value === "string") {
+    return value.length > 40 ? value.slice(0, 40) + "..." : value;
+  }
+  return String(value);
 }
 
 /**
@@ -84,6 +94,18 @@ export async function syncStatusCommand(options: SyncStatusOptions = {}): Promis
                       item.status === "modified" ? chalk.yellow :
                       item.status === "removed" ? chalk.red : chalk.dim;
         console.log(`  ${color(icon)} ${item.key}`);
+
+        // Show field-level detail when --detail flag is set
+        if (options.detail && item.changes.length > 0) {
+          for (const change of item.changes) {
+            const changeIcon = change.changeType === "added" ? "+" :
+                               change.changeType === "removed" ? "-" : "~";
+            console.log(chalk.dim(`      ${changeIcon} ${change.field}: ${formatValue(change.platformValue)} → ${formatValue(change.sourceValue)}`));
+          }
+          if (item.bodyChanged) {
+            console.log(chalk.dim(`      ~ body content changed`));
+          }
+        }
       }
     }
 

@@ -130,15 +130,19 @@ export function validateLessonFrontmatter(
     }
   }
 
-  // Cross-reference courseSlug against config
+  // Cross-reference courseSlug against config keys OR slug values
   const courseSlug = fm.courseSlug;
   if (typeof courseSlug === "string" && courseSlug.length > 0) {
-    const availableCourses = Object.keys(config.courses);
-    if (!availableCourses.includes(courseSlug)) {
+    const availableCourseKeys = Object.keys(config.courses);
+    const availableCourseSlugs = Object.values(config.courses)
+      .map((c: any) => c.slug)
+      .filter(Boolean);
+    const allValid = [...availableCourseKeys, ...availableCourseSlugs];
+    if (!allValid.includes(courseSlug)) {
       errors.push({
         field: "courseSlug",
         message: `Unknown course: "${courseSlug}"`,
-        suggestion: getSuggestion("courseSlug", availableCourses),
+        suggestion: getSuggestion("courseSlug", allValid),
       });
     }
   }
@@ -248,4 +252,81 @@ function detectDuplicateOrders(
   }
 
   return warnings;
+}
+
+// =============================================================================
+// Content Format Validation
+// =============================================================================
+
+/** Patterns that indicate VIDEO SCRIPT format (should be TEXT format) */
+const VIDEO_SCRIPT_PATTERNS = [
+  {
+    pattern: /^### (?:Opening|Core Content|Closing|Practice)\b/m,
+    label: "VIDEO SCRIPT section header (Opening/Core Content/Closing/Practice)",
+  },
+  {
+    pattern: /^(?:Script|Outline)\s*$/m,
+    label: "VIDEO SCRIPT 'Script' or 'Outline' section",
+  },
+  {
+    pattern: /\*\*Bloom Level:\*\*/,
+    label: "VIDEO SCRIPT Bloom Level declaration",
+  },
+  {
+    pattern: /^### Practice\s*\(\d+\s*min\)/m,
+    label: "VIDEO SCRIPT timed Practice section",
+  },
+];
+
+/**
+ * Check a single lesson file for VIDEO SCRIPT format markers.
+ *
+ * @param lesson - Discovered lesson
+ * @returns Array of warnings (empty if clean)
+ */
+export async function validateContentFormat(
+  lesson: DiscoveredLesson
+): Promise<ValidationWarning[]> {
+  const warnings: ValidationWarning[] = [];
+
+  try {
+    const content = await Bun.file(lesson.path).text();
+
+    // Strip frontmatter before checking
+    const bodyMatch = content.match(/^---[\s\S]*?---\s*([\s\S]*)$/);
+    const body = bodyMatch ? bodyMatch[1] : content;
+
+    for (const { pattern, label } of VIDEO_SCRIPT_PATTERNS) {
+      if (pattern.test(body)) {
+        warnings.push({
+          code: "VIDEO_SCRIPT_FORMAT",
+          message: `${lesson.relativePath}: Found ${label}`,
+          files: [lesson.relativePath],
+        });
+      }
+    }
+  } catch {
+    // File read errors are handled by discovery — skip here
+  }
+
+  return warnings;
+}
+
+/**
+ * Validate content format for all lessons in a manifest.
+ *
+ * @param manifest - Lesson manifest from discovery
+ * @returns Array of all content format warnings
+ */
+export async function validateAllContentFormats(
+  manifest: LessonManifest
+): Promise<ValidationWarning[]> {
+  const allWarnings: ValidationWarning[] = [];
+
+  for (const lesson of manifest.lessons) {
+    const warnings = await validateContentFormat(lesson);
+    allWarnings.push(...warnings);
+  }
+
+  return allWarnings;
 }

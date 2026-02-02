@@ -32,8 +32,8 @@ export const LessonFrontmatterSchema = z
   })
   .passthrough(); // Allow additional fields
 
-/** Regex pattern for valid lesson filenames: {nn}-{slug}.md */
-export const LESSON_FILENAME_PATTERN = /^(\d{2,})-([a-z0-9-]+)\.md$/i;
+/** Regex pattern for valid lesson filenames: {nn}-{slug}.md or {mN-lN}-{slug}.md */
+export const LESSON_FILENAME_PATTERN = /^(?:(\d{2,})|m(\d+)-l(\d+))-([a-z0-9-]+)\.md$/i;
 
 // =============================================================================
 // Filename Parsing
@@ -47,12 +47,17 @@ export interface ParsedFilename {
 /**
  * Parse order and slug from a lesson filename.
  *
- * @param filename - The filename to parse (e.g., "01-intro.md")
+ * Supports two formats:
+ * - Numeric: "01-intro.md" → order 1, slug "intro"
+ * - Module-lesson: "m1-l2-intro.md" → order 12 (m*10+l), slug "intro"
+ *
+ * @param filename - The filename to parse
  * @returns Parsed order and slug, or null if invalid format
  *
  * @example
  * parseFilename("01-intro.md") // { order: 1, slug: "intro" }
- * parseFilename("10-advanced-topics.md") // { order: 10, slug: "advanced-topics" }
+ * parseFilename("m1-l2-intro.md") // { order: 12, slug: "intro" }
+ * parseFilename("m3-l4-advanced.md") // { order: 34, slug: "advanced" }
  * parseFilename("intro.md") // null (no order prefix)
  */
 export function parseFilename(filename: string): ParsedFilename | null {
@@ -61,9 +66,21 @@ export function parseFilename(filename: string): ParsedFilename | null {
     return null;
   }
 
-  const [, orderStr, slug] = match;
+  const [, numericOrder, moduleNum, lessonNum, slug] = match;
+
+  if (numericOrder) {
+    // Format: 01-slug.md
+    return {
+      order: parseInt(numericOrder, 10),
+      slug: slug.toLowerCase(),
+    };
+  }
+
+  // Format: m1-l2-slug.md → order = module*10 + lesson
+  const m = parseInt(moduleNum, 10);
+  const l = parseInt(lessonNum, 10);
   return {
-    order: parseInt(orderStr, 10),
+    order: m * 10 + l,
     slug: slug.toLowerCase(),
   };
 }
